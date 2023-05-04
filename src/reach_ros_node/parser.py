@@ -109,6 +109,8 @@ def convert_knots_to_mps(knots):
 def convert_deg_to_rads(degs):
     return math.radians(safe_float(degs))
 
+def convert_str(string):
+    return string.decode('utf-8')
 
 """
 Format for this is a sentence identifier (e.g. "GGA") as the key, with a
@@ -121,9 +123,9 @@ parse_maps = {
     b"GGA": [
         ("utc_time", convert_time, 1),
         ("latitude", convert_latitude, 2),
-        ("latitude_direction", str, 3),
+        ("latitude_direction", convert_str, 3),
         ("longitude", convert_longitude, 4),
-        ("longitude_direction", str, 5),
+        ("longitude_direction", convert_str, 5),
         ("fix_type", int, 6),
         ("num_satellites", safe_int, 7),
         ("hdop", safe_float, 8),
@@ -143,9 +145,9 @@ parse_maps = {
         ("utc_time", convert_time, 1),
         ("fix_valid", convert_status_flag, 2),
         ("latitude", convert_latitude, 3),
-        ("latitude_direction", str, 4),
+        ("latitude_direction", convert_str, 4),
         ("longitude", convert_longitude, 5),
-        ("longitude_direction", str, 6),
+        ("longitude_direction", convert_str, 6),
         ("speed", convert_knots_to_mps, 7),
         ("true_course", convert_deg_to_rads, 8),
         ],
@@ -176,7 +178,7 @@ parse_maps = {
         ("sat_04_snr", safe_float, 19),
         ],
     b"GSA": [
-        ("mode", str, 1),
+        ("mode", convert_str, 1),
         ("fix_type", safe_int, 2),
         ("sat_id", safe_int, 3),
         ("pdop", safe_float, 4),
@@ -189,7 +191,7 @@ parse_maps = {
 def parse_nmea_sentence(nmea_sentence):
     # Check for a valid nmea sentence
     if not re.match(b'(^\$GP|^\$GA|^\$GN|^\$GL).*\*[0-9A-Fa-f]{2}$', nmea_sentence):
-        logger.warn("Regex didn't match, sentence not valid NMEA? Sentence was: %s" % repr(nmea_sentence))
+        logger.warning("Regex didn't match, sentence not valid NMEA? Sentence was: %s" % repr(nmea_sentence))
         return False
 
     # Remove the last bit after the asterisk, this is the checksum
@@ -212,3 +214,4 @@ def parse_nmea_sentence(nmea_sentence):
     for entry in parse_map:
         parsed_sentence[entry[0]] = entry[1](fields[entry[2]])
     return {sentence_type: parsed_sentence}
+
